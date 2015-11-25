@@ -16,6 +16,7 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
+    "postinstall": "npm run build",
     "build": "webpack",
     "clean": "rimraf dist"
   },
