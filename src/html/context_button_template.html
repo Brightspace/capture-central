@@ -1,0 +1,4 @@
+﻿<span ng-show="show">
+    <button ng-show="!presentation.inContext(contextId)" class="btn btn-success {{buttonClass}}" ng-click="addToContext()"><i class="glyphicon glyphicon-plus-sign"></i> {{ addToContextString | format: [contextLabel] }}</button>
+    <button ng-show="presentation.inContext(contextId)" class="btn btn-danger {{buttonClass}}" ng-click="removeFromContext()"><i class="glyphicon glyphicon-minus-sign"></i> {{ removeFromContextString | format: [contextLabel] }}</button>
+</span>

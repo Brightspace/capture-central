@@ -1,0 +1,24 @@
+﻿<div class="presentation media">
+    <div class="pull-left" ng-show="presentation.data.ThumbnailUrl">
+        <a href="javascript:;" ng-click="watch.presentation = presentation" class="thumbnail"><img class="media-object" ng-src="{{presentation.data.ThumbnailUrl}}" /></a>
+    </div>
+    <div class="media-body">
+        <h5 class="media-heading">
+            <a href="javascript:;" ng-click="watch.presentation = presentation"><span ng-bind-html="presentation.data.Title"></span></a>
+        </h5>
+        <div class="info text-muted">
+            <small>
+                <span ng-show="presentation.data.Status == constants.Availability.Current" class="label label-success">{{ liveString }}</span>
+                <span ng-show="presentation.data.Presenter"><span ng-bind-html="byPresenterString | format: [presentation.data.Presenter]"></span>, </span>
+                <span>{{ presentation.data.DateBegin | date:presentation.data.Type == 1 ? 'mediumDate' : 'medium' }}</span>
+            </small>
+        </div>
+        <div class="description">
+            <small><span ng-bind-html="presentation.data.Description"></span></small>
+        </div>
+        <div class="actions">
+            <span ng-if="!singleSelection" d2l-context-button add-to-context-string="addToContextString" remove-from-context-string="removeFromContextString" d2l-show="isManager" d2l-context-label="contextLabel" d2l-context-id="contextId" d2l-button-class="'btn-xs'" d2l-add-to-context="addToContext()" d2l-remove-from-context="removeFromContext()" d2l-presentation="presentation"></span>
+            <button class="btn btn-success btn-sm" ng-click="addToContext()" ng-if="singleSelection"><i class="glyphicon glyphicon-plus-sign"></i> {{ selectPresentationString }}</button>
+        </div>
+    </div>
+</div>
