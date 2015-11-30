@@ -1,7 +1,7 @@
 {
   "name": "capture-central",
   "description": "Capture Central application for Basic LTI support",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": {
     "type": "git",
     "url": "Brightspace/capture-central"
@@ -16,7 +16,7 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "postinstall": "npm run build",
+    "prepublish": "npm run build",
     "build": "webpack",
     "clean": "rimraf dist"
   },
