@@ -1,0 +1,32 @@
+export const pageNames = {
+	admin: 'admin',
+	auditLogs: 'audit-logs',
+	clips: 'clips',
+	courseVideos: 'course-videos',
+	folders: 'folders',
+	groups: 'groups',
+	landing: '',
+	liveEventsReporting: 'live-events-reporting',
+	manageLiveEvents: 'manage-live-events',
+	manageLiveEventsCreate: 'create',
+	manageLiveEventsEdit: 'edit',
+	page404: '404',
+	presentations: 'presentations',
+	settings: 'settings',
+	uploadVideo: 'upload-video',
+	users: 'users',
+	visits: 'visits'
+};
+
+export const availability = {
+	current: 'current',
+	upcoming: 'upcoming',
+	default: 'upcoming'
+};
+
+export const layoutNames = {
+	camera: 'camera',
+	screen: 'screen',
+	cameraAndScreen: 'camera-and-screen',
+	default: 'camera-and-screen'
+};

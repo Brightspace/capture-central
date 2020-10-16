@@ -6,6 +6,7 @@ import { MobxReactionUpdate } from '@adobe/lit-mobx';
 import { NavigationMixin } from './mixins/navigation-mixin.js';
 import page from 'page/page.mjs';
 
+import { pageNames } from './util/constants.js';
 import { ResizeObserver } from 'd2l-resize-aware/resize-observer-module.js';
 import { rootStore } from './state/root-store.js';
 
@@ -51,21 +52,22 @@ class D2lCaptureCentralApp extends NavigationMixin(InternalLocalizeMixin(MobxRea
 		page.base(BASE_PATH);
 
 		const routes = [
-			'/:orgUnitId/404',
-			'/:orgUnitId/admin',
-			'/:orgUnitId/audit-logs',
-			'/:orgUnitId/clips',
-			'/:orgUnitId/course-videos',
-			'/:orgUnitId/course-videos/:id',
-			'/:orgUnitId/folders',
-			'/:orgUnitId/live-events',
-			'/:orgUnitId/live-events/edit',
-			'/:orgUnitId/live-events-reporting',
-			'/:orgUnitId/presentations',
-			'/:orgUnitId/presentations/edit',
-			'/:orgUnitId/settings',
-			'/:orgUnitId/upload-video',
-			'/:orgUnitId/visits',
+			`/:orgUnitId/${pageNames.page404}`,
+			`/:orgUnitId/${pageNames.admin}`,
+			`/:orgUnitId/${pageNames.auditLogs}`,
+			`/:orgUnitId/${pageNames.clips}`,
+			`/:orgUnitId/${pageNames.courseVideos}`,
+			`/:orgUnitId/${pageNames.courseVideos}/:id`,
+			`/:orgUnitId/${pageNames.folders}`,
+			`/:orgUnitId/${pageNames.manageLiveEvents}`,
+			`/:orgUnitId/${pageNames.manageLiveEvents}/create`,
+			`/:orgUnitId/${pageNames.manageLiveEvents}/edit`,
+			`/:orgUnitId/${pageNames.liveEventsReporting}`,
+			`/:orgUnitId/${pageNames.presentations}`,
+			`/:orgUnitId/${pageNames.presentations}/edit`,
+			`/:orgUnitId/${pageNames.settings}`,
+			`/:orgUnitId/${pageNames.uploadVideo}`,
+			`/:orgUnitId/${pageNames.visits}`,
 			'/:orgUnitId/',
 			'/*',
 		];
@@ -79,57 +81,63 @@ class D2lCaptureCentralApp extends NavigationMixin(InternalLocalizeMixin(MobxRea
 
 		switch (page) {
 			case '':
-				this._navigate('/admin');
+				import('./pages/d2l-capture-central-landing.js');
 				return;
-			case 'admin':
+			case pageNames.admin:
 				import('./pages/admin/d2l-capture-central-admin.js');
 				return;
-			case 'audit-logs':
+			case pageNames.auditLogs:
 				import('./pages/reporting/d2l-capture-central-audit-logs.js');
 				return;
-			case 'course-videos':
+			case pageNames.courseVideos:
 				if (subView) {
 					import('./pages/course-videos/d2l-capture-central-course-video-player.js');
 					return;
 				}
 				import('./pages/course-videos/d2l-capture-central-course-videos.js');
 				return;
-			case 'clips':
+			case pageNames.clips:
 				import('./pages/clips/d2l-capture-central-clips.js');
 				return;
-			case 'folders':
+			case pageNames.folders:
 				import('./pages/folders/d2l-capture-central-folders.js');
 				return;
-			case 'groups':
+			case pageNames.groups:
 				import('./pages/groups/d2l-capture-central-groups.js');
 				return;
-			case 'live-events':
-				if (subView === 'edit') {
-					import('./pages/live-events/d2l-capture-central-live-events-edit.js');
-					return;
+			case pageNames.manageLiveEvents:
+				switch (subView) {
+					case 'edit':
+						import('./pages/live-events/d2l-capture-central-live-events-edit.js');
+						return;
+					case 'create':
+						import('./pages/live-events/d2l-capture-central-live-events-create.js');
+						return;
+					default:
+						rootStore.routingStore.setPage('404');
+						import('./pages/404/d2l-capture-central-404.js');
+						return;
 				}
-				import('./pages/live-events/d2l-capture-central-live-events.js');
-				return;
-			case 'live-events-reporting':
+			case pageNames.liveEventsReporting:
 				import('./pages/reporting/d2l-capture-central-live-events-reporting.js');
 				return;
-			case 'presentations':
+			case pageNames.presentations:
 				if (subView === 'edit') {
 					import('./pages/presentations/d2l-capture-central-presentations-edit.js');
 					return;
 				}
 				import('./pages/presentations/d2l-capture-central-presentations.js');
 				return;
-			case 'settings':
+			case pageNames.settings:
 				import('./pages/settings/d2l-capture-central-settings.js');
 				return;
-			case 'upload-video':
+			case pageNames.uploadVideo:
 				import('./pages/upload-video/d2l-capture-central-upload-video.js');
 				return;
-			case 'users':
+			case pageNames.users:
 				import('./pages/users/d2l-capture-central-users.js');
 				return;
-			case 'visits':
+			case pageNames.visits:
 				import('./pages/reporting/d2l-capture-central-visits.js');
 				return;
 			default:
@@ -143,21 +151,22 @@ class D2lCaptureCentralApp extends NavigationMixin(InternalLocalizeMixin(MobxRea
 		const { page: currentPage, subView } = rootStore.routingStore;
 		return html`
 		<main id="main" role="main">
-			<d2l-capture-central-admin class="page" ?active=${currentPage === 'admin'}></d2l-capture-central-admin>
-			<d2l-capture-central-audit-logs class="page" ?active=${currentPage === 'audit-logs'}></d2l-capture-central-audit-logs>
-			<d2l-capture-central-course-videos class="page" ?active=${currentPage === 'course-videos' && !subView}></d2l-capture-central-course-videos>
-			<d2l-capture-central-course-video-player class="page" ?active=${currentPage === 'course-videos' && subView}></d2l-capture-central-course-video-player>
-			<d2l-capture-central-clips class="page" ?active=${currentPage === 'clips'}></d2l-capture-central-clips>
-			<d2l-capture-central-folders class="page" ?active=${currentPage === 'folders'}></d2l-capture-central-folders>
-			<d2l-capture-central-live-events class="page" ?active=${currentPage === 'live-events' && !subView}></d2l-capture-central-live-events>
-			<d2l-capture-central-live-events-edit class="page" ?active=${currentPage === 'live-events' && subView === 'edit'}></d2l-capture-central-live-events-edit>
-			<d2l-capture-central-live-events-reporting class="page" ?active=${currentPage === 'live-events-reporting'}></d2l-capture-central-live-events-reporting>
-			<d2l-capture-central-presentations class="page" ?active=${currentPage === 'presentations' && !subView}></d2l-capture-central-presentations>
-			<d2l-capture-central-presentations-edit class="page" ?active=${currentPage === 'presentations' && subView === 'edit'}></d2l-capture-central-presentations-edit>
-			<d2l-capture-central-settings class="page" ?active=${currentPage === 'settings'}></d2l-capture-central-settings>
-			<d2l-capture-central-upload-video class="page" ?active=${currentPage === 'upload-video'}></d2l-capture-central-upload-video>
-			<d2l-capture-central-visits class="page" ?active=${currentPage === 'visits'}></d2l-capture-central-visits>
-			<d2l-capture-central-404 class="page" ?active=${currentPage === '404'}></d2l-capture-central-404>
+			<d2l-capture-central-landing class="page" ?active=${currentPage === pageNames.landing}></d2l-capture-central-landing>
+			<d2l-capture-central-admin class="page" ?active=${currentPage === pageNames.admin}></d2l-capture-central-admin>
+			<d2l-capture-central-audit-logs class="page" ?active=${currentPage === pageNames.auditLogs}></d2l-capture-central-audit-logs>
+			<d2l-capture-central-course-videos class="page" ?active=${currentPage === pageNames.courseVideos && !subView}></d2l-capture-central-course-videos>
+			<d2l-capture-central-course-video-player class="page" ?active=${currentPage === pageNames.courseVideos && subView}></d2l-capture-central-course-video-player>
+			<d2l-capture-central-clips class="page" ?active=${currentPage === pageNames.clips}></d2l-capture-central-clips>
+			<d2l-capture-central-folders class="page" ?active=${currentPage === pageNames.folders}></d2l-capture-central-folders>
+			<d2l-capture-central-live-events-edit class="page" ?active=${currentPage === pageNames.manageLiveEvents && subView === 'edit'}></d2l-capture-central-live-events-edit>
+			<d2l-capture-central-live-events-create class="page" ?active=${currentPage === pageNames.manageLiveEvents && subView === 'create'}></d2l-capture-central-live-events-create>
+			<d2l-capture-central-live-events-reporting class="page" ?active=${currentPage === pageNames.liveEventsReporting}></d2l-capture-central-live-events-reporting>
+			<d2l-capture-central-presentations class="page" ?active=${currentPage === pageNames.presentations && !subView}></d2l-capture-central-presentations>
+			<d2l-capture-central-presentations-edit class="page" ?active=${currentPage === pageNames.presentations && subView === 'edit'}></d2l-capture-central-presentations-edit>
+			<d2l-capture-central-settings class="page" ?active=${currentPage === pageNames.settings}></d2l-capture-central-settings>
+			<d2l-capture-central-upload-video class="page" ?active=${currentPage === pageNames.uploadVideo}></d2l-capture-central-upload-video>
+			<d2l-capture-central-visits class="page" ?active=${currentPage === pageNames.visits}></d2l-capture-central-visits>
+			<d2l-capture-central-404 class="page" ?active=${currentPage === pageNames.page404}></d2l-capture-central-404>
 		</main>
 		`;
 	}

@@ -6,93 +6,148 @@ import '@brightspace-ui/core/components/button/button-icon.js';
 import '@brightspace-ui/core/components/colors/colors.js';
 import '@brightspace-ui/core/components/inputs/input-text.js';
 import '@brightspace-ui/core/components/inputs/input-date-time-range.js';
+import '@brightspace-ui/core/components/loading-spinner/loading-spinner.js';
 import '@brightspace-ui-labs/accordion/accordion-collapse.js';
+import '../../components/live-event-form.js';
 
 import { css, html } from 'lit-element/lit-element.js';
 import { heading2Styles, labelStyles } from '@brightspace-ui/core/components/typography/styles.js';
 import { DependencyRequester } from '../../mixins/dependency-requester-mixin.js';
 import { inputStyles } from '@brightspace-ui/core/components/inputs/input-styles.js';
+import { observe } from 'mobx';
+import { pageNames } from '../../util/constants.js';
 import { PageViewElement } from '../../components/page-view-element.js';
+import { rootStore } from '../../state/root-store.js';
 import { sharedEditStyles } from '../../components/shared-styles.js';
 
 class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 
 	static get properties() {
 		return {
-			_liveEvent: { type: Object }
+			_loading: { type: Boolean, attribute: false },
 		};
 	}
 	static get styles() {
 		return [inputStyles, heading2Styles, labelStyles, sharedEditStyles, css`
-			.d2l-capture-central-edit-live-events-start-end-times {
-				margin-bottom: 25px;
-				width: 750px;
+			d2l-loading-spinner {
+				display: flex;
+				margin-top: 10%;
+			}
+
+			.hidden {
+				display: none;
+			}
+
+			.visible {
+				display: block;
 			}
 		`];
 	}
 
 	constructor() {
 		super();
-		this._liveEvent = {
-			title: 'Live Event 1',
-			presenter: 'DC',
-			description: 'An upcoming live event.'
-		};
+		this._liveEvent = {};
+		this.captureApiClient = this.requestDependency('capture-service-client');
+		this._loading = true;
+		this.observeQueryParams();
+	}
+
+	firstUpdated() {
+		super.firstUpdated();
+		this.reloadPage();
+		const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
+		if (editLiveEventForm) {
+			editLiveEventForm.addEventListener('edit-live-event', this.handleEditEvent.bind(this));
+		}
+	}
+
+	observeQueryParams() {
+		observe(
+			rootStore.routingStore,
+			'queryParams',
+			async() => {
+				if (this.loading) {
+					return;
+				}
+
+				if (rootStore.routingStore.page === pageNames.manageLiveEvents &&
+					rootStore.routingStore.subView === pageNames.manageLiveEventsEdit) {
+					this.reloadPage();
+				}
+			}
+		);
+	}
+
+	async reloadPage() {
+		const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
+		const loadSpinner = this.shadowRoot.querySelector('#loading-spinner');
+
+		this._loading = true;
+		loadSpinner.className = 'visible';
+		editLiveEventForm.className = 'hidden';
+
+		let liveEventResponse;
+		try {
+			liveEventResponse = await this.captureApiClient.getEvent({
+				id: rootStore.routingStore.getQueryParams().id
+			});
+			this._liveEvent = liveEventResponse.item;
+			editLiveEventForm.updateFields(this._liveEvent);
+			editLiveEventForm.setFocus();
+		} catch (error) {
+			editLiveEventForm.renderFailureAlert({ message: this.localize('getLiveEventError'), hideInputs: true });
+		}
+
+		loadSpinner.className = 'hidden';
+		editLiveEventForm.className = 'visible';
+		this._loading = false;
+	}
+
+	async handleEditEvent(event) {
+		if (event && event.detail) {
+			const {
+				id,
+				title,
+				presenter,
+				description,
+				startTime,
+				endTime,
+				status,
+				enableChat,
+				layoutName
+			}  = event.detail;
+			const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
+
+			try {
+				await this.captureApiClient.updateEvent({
+					id,
+					title,
+					presenter,
+					description,
+					startTime,
+					endTime,
+					status,
+					enableChat,
+					layoutName
+				});
+			} catch (error) {
+				editLiveEventForm.renderFailureAlert({ message: this.localize('updateLiveEventError') });
+				return;
+			}
+
+			editLiveEventForm.renderEditSuccessAlert();
+		}
 	}
 
 	render() {
-		const { title, presenter, description } = this._liveEvent;
 		return html`
-			<div class="d2l-capture-central-edit-container">
-				<d2l-breadcrumbs>
-					<d2l-breadcrumb @click=${this._goTo('/admin')} href="#" text="${this.localize('captureCentral')}"></d2l-breadcrumb>
-					<d2l-breadcrumb @click=${this._goTo('/live-events')} href="#" text="${this.localize('liveEvents')}"></d2l-breadcrumb>
-					<d2l-breadcrumb-current-page text="${this.localize('editEvent')}"></d2l-breadcrumb-current-page>
-				</d2l-breadcrumbs>
-				<div class="d2l-heading-2">${this.localize('editRecordedPresentation')}</div>
-				<d2l-input-text
-					label="${this.localize('title')}"
-					placeholder="${this.localize('title')}"
-					value="${title}"
-				></d2l-input-text>
-				<d2l-input-text
-					label="${this.localize('presenter')}"
-					placeholder="${this.localize('presenter')}"
-					value="${presenter}"
-				></d2l-input-text>
-				<div class="d2l-capture-central-edit-textarea-container">
-					<div class="d2l-label-text">${this.localize('description')}</div>
-					<textarea class="d2l-input">${description}</textarea
-				></div>
-				<div class="d2l-capture-central-edit-live-events-start-end-times">
-					<d2l-input-date-time-range
-						label-hidden
-						label="${this.localize('startEndDates')}"
-					></d2l-input-date-time-range>
-				</div>
-				<d2l-labs-accordion-collapse flex no-icons>
-					<div slot="header">${this.localize('layoutSettings')}</div>
-					<d2l-button-icon text="My Button" icon="tier1:file-video"></d2l-button-icon>
-					<d2l-button-icon text="My Button" icon="tier1:file-document"></d2l-button-icon>
-				</d2l-labs-accordion-collapse>
-				<d2l-labs-accordion-collapse flex no-icons>
-					<div slot="header">${this.localize('accessControl')}</div>
-					<div>Placeholder text...</div>
-				</d2l-labs-accordion-collapse>
-				<d2l-labs-accordion-collapse flex no-icons>
-					<div slot="header">${this.localize('sharing')}</div>
-					<div>Placeholder text...</div>
-				</d2l-labs-accordion-collapse>
-				<d2l-labs-accordion-collapse flex no-icons>
-					<div slot="header">${this.localize('prepostRollSection')}</div>
-					<div>Placeholder text...</div>
-				</d2l-labs-accordion-collapse>
-				<d2l-button
-					class="d2l-capture-central-edit-save-changes-button"
-					primary
-				>${this.localize('saveChanges')}
-				</d2l-button>
-			</div>
+			<d2l-loading-spinner id="loading-spinner" class="hidden" size=150></d2l-loading-spinner>
+			<live-event-form
+				class="hidden"
+				id="edit-live-event-form"
+				live-event="${JSON.stringify(this._liveEvent)}"
+				is-edit>
+			</live-event-form>
 		`;
 	}
 }
