@@ -9,6 +9,7 @@ import '@brightspace-ui/core/components/inputs/input-date-time-range.js';
 import '@brightspace-ui/core/components/loading-spinner/loading-spinner.js';
 import '@brightspace-ui-labs/accordion/accordion-collapse.js';
 import '../../components/live-event-form.js';
+import '../../components/unauthorized-message.js';
 
 import { css, html } from 'lit-element/lit-element.js';
 import { heading2Styles, labelStyles } from '@brightspace-ui/core/components/typography/styles.js';
@@ -79,6 +80,10 @@ class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 	}
 
 	async reloadPage() {
+		if (!rootStore.permissionStore.getCanManageLiveEvents()) {
+			return;
+		}
+
 		const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
 		const loadSpinner = this.shadowRoot.querySelector('#loading-spinner');
 
@@ -116,7 +121,6 @@ class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 				enableChat,
 				layoutName
 			}  = event.detail;
-			const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
 
 			try {
 				await this.captureApiClient.updateEvent({
@@ -131,15 +135,22 @@ class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 					layoutName
 				});
 			} catch (error) {
+				const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
 				editLiveEventForm.renderFailureAlert({ message: this.localize('updateLiveEventError') });
 				return;
 			}
 
-			editLiveEventForm.renderEditSuccessAlert();
+			this._navigate('/');
 		}
 	}
 
 	render() {
+		if (!rootStore.permissionStore.getCanManageLiveEvents()) {
+			return html`
+				<unauthorized-message></unauthorized-message>
+			`;
+		}
+
 		return html`
 			<d2l-loading-spinner id="loading-spinner" class="hidden" size=150></d2l-loading-spinner>
 			<live-event-form

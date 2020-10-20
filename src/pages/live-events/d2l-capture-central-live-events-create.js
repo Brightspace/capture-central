@@ -8,6 +8,7 @@ import '@brightspace-ui/core/components/inputs/input-text.js';
 import '@brightspace-ui/core/components/inputs/input-date-time-range.js';
 import '@brightspace-ui-labs/accordion/accordion-collapse.js';
 import '../../components/live-event-form.js';
+import '../../components/unauthorized-message.js';
 
 import { css, html } from 'lit-element/lit-element.js';
 import { heading2Styles, labelStyles } from '@brightspace-ui/core/components/typography/styles.js';
@@ -59,8 +60,14 @@ class D2LCaptureLiveEventsCreate extends DependencyRequester(PageViewElement) {
 	}
 
 	async reloadPage() {
+		if (!rootStore.permissionStore.getCanManageLiveEvents()) {
+			return;
+		}
+
 		const createLiveEventForm = this.shadowRoot.querySelector('#create-live-event-form');
-		createLiveEventForm.reload();
+		if (createLiveEventForm) {
+			createLiveEventForm.reload();
+		}
 	}
 
 	async handleCreateEvent(event) {
@@ -75,11 +82,9 @@ class D2LCaptureLiveEventsCreate extends DependencyRequester(PageViewElement) {
 				enableChat,
 				layoutName
 			}  = event.detail;
-			const createLiveEventForm = this.shadowRoot.querySelector('#create-live-event-form');
 
-			let createdEvent;
 			try {
-				createdEvent = await this.captureApiClient.createEvent({
+				await this.captureApiClient.createEvent({
 					title,
 					presenter,
 					description,
@@ -90,15 +95,22 @@ class D2LCaptureLiveEventsCreate extends DependencyRequester(PageViewElement) {
 					layoutName
 				});
 			} catch (error) {
+				const createLiveEventForm = this.shadowRoot.querySelector('#create-live-event-form');
 				createLiveEventForm.renderFailureAlert({ message: this.localize('createLiveEventError') });
 				return;
 			}
 
-			createLiveEventForm.renderCreateSuccessAlert(createdEvent.item.id);
+			this._navigate('/');
 		}
 	}
 
 	render() {
+		if (!rootStore.permissionStore.getCanManageLiveEvents()) {
+			return html`
+				<unauthorized-message></unauthorized-message>
+			`;
+		}
+
 		return html`
 			<live-event-form id="create-live-event-form"></live-event-form>
 		`;

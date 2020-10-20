@@ -10,9 +10,9 @@ import '@brightspace-ui/core/components/inputs/input-text.js';
 import '@brightspace-ui/core/components/inputs/input-date-time-range.js';
 import '@brightspace-ui-labs/accordion/accordion-collapse.js';
 
-import { availability, layoutNames } from '../util/constants.js';
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { heading2Styles, labelStyles } from '@brightspace-ui/core/components/typography/styles.js';
+import { layoutNames, streamingStatus } from '../util/constants.js';
 import { inputLabelStyles } from '@brightspace-ui/core/components/inputs/input-label-styles';
 import { inputStyles } from '@brightspace-ui/core/components/inputs/input-styles.js';
 import { InternalLocalizeMixin } from '../mixins/internal-localize-mixin.js';
@@ -45,22 +45,13 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 				width: 750px;
 			}
 
-			.d2l-capture-central-live-event-form-success-alert {
-				display: none;
-				margin-bottom: 1rem;
-			}
-
 			.d2l-capture-central-live-event-form-critical-alert {
 				display: none;
 				margin-bottom: 1rem;
 			}
 
-			.d2l-capture-central-live-event-form-availability-select {
+			.d2l-capture-central-live-event-form-streaming-status-select {
 				width: 40%;
-			}
-
-			.d2l-capture-central-live-event-form-access-control-header {
-				margin-bottom: 1rem;
 			}
 
 			.d2l-capture-central-live-event-form-input-container {
@@ -68,8 +59,13 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 				flex-direction: column;
 			}
 
-			.d2l-capture-central-live-event-form-layout-settings-header {
-				margin-bottom: 1rem;
+			.d2l-capture-central-live-event-form-settings-container {
+				display: flex;
+				flex-direction: column;
+			}
+
+			.d2l-capture-central-live-event-form-enable-chat-container {
+				margin-top: 1rem;
 			}
 		`];
 	}
@@ -115,14 +111,18 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 			dateTimeRangeInputElement.setAttribute('end-value', endTime.toISOString());
 		}
 
-		const chatDisabledElement = this.shadowRoot.querySelector('#chat-disabled-checkbox');
-		if (chatDisabledElement) {
-			chatDisabledElement.checked = false;
+		const enableChatElement = this.shadowRoot.querySelector('#enable-chat-checkbox');
+		if (enableChatElement) {
+			enableChatElement.checked = true;
+		}
+
+		const streamingStatusInputElement = this.shadowRoot.querySelector('#streaming-status-select');
+		if (streamingStatusInputElement) {
+			streamingStatusInputElement.value = streamingStatus.default;
 		}
 
 		this.setPresentationLayoutSelection({ layoutName: layoutNames.default });
 		this.hideAccordions();
-		this.hideSuccessAlert();
 		this.hideFailureAlert();
 	}
 
@@ -149,19 +149,18 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 			dateTimeRangeInputElement.setAttribute('end-value', liveEvent.endTime);
 		}
 
-		const availabilityInputElement = this.shadowRoot.querySelector('#availability-select');
-		if (availabilityInputElement) {
-			availabilityInputElement.value = liveEvent.status;
+		const streamingStatusInputElement = this.shadowRoot.querySelector('#streaming-status-select');
+		if (streamingStatusInputElement) {
+			streamingStatusInputElement.value = liveEvent.status;
 		}
 
-		const chatDisabledElement = this.shadowRoot.querySelector('#chat-disabled-checkbox');
-		if (chatDisabledElement) {
-			chatDisabledElement.checked  = !liveEvent.enableChat;
+		const enableChatElement = this.shadowRoot.querySelector('#enable-chat-checkbox');
+		if (enableChatElement) {
+			enableChatElement.checked  = liveEvent.enableChat;
 		}
 
 		this.setPresentationLayoutSelection({ layoutName: liveEvent.layoutName });
 		this.hideAccordions();
-		this.hideSuccessAlert();
 		this.hideFailureAlert();
 	}
 
@@ -179,11 +178,11 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 		const startTime = dateTimeRangeInputElement && dateTimeRangeInputElement.getAttribute('start-value');
 		const endTime = dateTimeRangeInputElement && dateTimeRangeInputElement.getAttribute('end-value');
 
-		const availabilityInputElement = this.shadowRoot.querySelector('#availability-select');
-		const status = this.isEdit ? availabilityInputElement.value : availability.default;
+		const streamingStatusInputElement = this.shadowRoot.querySelector('#streaming-status-select');
+		const status = streamingStatusInputElement.value;
 
-		const chatDisabledElement = this.shadowRoot.querySelector('#chat-disabled-checkbox');
-		const chatDisabled = chatDisabledElement.checked;
+		const enableChatElement = this.shadowRoot.querySelector('#enable-chat-checkbox');
+		const enableChat = enableChatElement.checked;
 
 		const layoutName = this.getPresentationLayoutSelection();
 
@@ -194,7 +193,7 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 			startTime: startTime === 'undefined' ? '' : startTime,
 			endTime: endTime === 'undefined' ? '' : endTime,
 			status,
-			enableChat: !chatDisabled,
+			enableChat,
 			layoutName: layoutName
 		};
 	}
@@ -207,7 +206,6 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 	}
 
 	async _createEvent() {
-		this.hideSuccessAlert();
 		this.hideFailureAlert();
 
 		const inputs = this._getInputs();
@@ -227,7 +225,6 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 	}
 
 	async _editEvent() {
-		this.hideSuccessAlert();
 		this.hideFailureAlert();
 
 		const inputs = this._getInputs();
@@ -249,23 +246,6 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 		this.dispatchEvent(event);
 	}
 
-	renderCreateSuccessAlert(id) {
-		this.reload();
-		const successAlert = this.shadowRoot.querySelector('#live-event-form-success-alert');
-		this._alertMessage = html`
-			<d2l-link @click=${this._goTo('/manage-live-events/edit', { id })}>${this.localize('createSuccess')}</d2l-link>
-		`;
-		successAlert.style.display = 'block';
-		this.scrollToTop();
-	}
-
-	renderEditSuccessAlert() {
-		const successAlert = this.shadowRoot.querySelector('#live-event-form-success-alert');
-		this._alertMessage = this.localize('editSuccess');
-		successAlert.style.display = 'block';
-		this.scrollToTop();
-	}
-
 	renderFailureAlert({ message, hideInputs = false}) {
 		const criticalAlert = this.shadowRoot.querySelector('#live-event-form-critical-alert');
 		if (criticalAlert) {
@@ -284,14 +264,6 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 	scrollToTop() {
 		document.body.scrollTop = 0; // For Safari
 		document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-	}
-
-	hideSuccessAlert() {
-		const successAlert = this.shadowRoot.querySelector('#live-event-form-success-alert');
-		if (successAlert) {
-			this._alertMessage = '';
-			successAlert.style.display = 'none';
-		}
 	}
 
 	hideFailureAlert() {
@@ -374,72 +346,52 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 		}
 	}
 
-	_renderLayoutSettings() {
+	_renderSettings() {
 		return html`
-			<d2l-labs-accordion-collapse
-				id="live-event-form-layout-settings-accordion"
-				flex
-				no-icons
-				opened>
-				<div
-					slot="header"
-					class="d2l-capture-central-live-event-form-layout-settings-header">
-					${this.localize('layoutSettings')}
-				</div>
-				<label
-					for="presentation-layout-radio-input"
-					class="d2l-input-label">
-					${this.localize('presentationLayout')}
-				</label>
-				<div id="presentation-layout-radio-input">
-					<label class="d2l-input-radio-label">
-						<input
-							type="radio"
-							name="presentationLayout"
-							id="presentation-layout-camera-and-screen">
-						${this.localize('cameraAndScreen')}
-					</label>
-					<label class="d2l-input-radio-label">
-						<input type="radio" name="presentationLayout" id="presentation-layout-camera">
-						${this.localize('camera')}
-					</label>
-					<label class="d2l-input-radio-label">
-						<input type="radio" name="presentationLayout" id="presentation-layout-screen">
-						${this.localize('screen')}
-					</label>
-				</div>
-			</d2l-labs-accordion-collapse>
-		`;
-	}
-
-	_renderAccessControl() {
-		return html`
-			<d2l-labs-accordion-collapse
-				id="live-event-form-access-control-accordion"
-				flex
-				no-icons>
-				<div
-					slot="header"
-					class="d2l-capture-central-live-event-form-access-control-header">
-					${this.localize('accessControl')}
-				</div>
-				<d2l-input-checkbox
-					id="chat-disabled-checkbox">
-					${this.localize('chatDisabled')}
-				</d2l-input-checkbox>
-				${this.isEdit ? html`
+			<div class="d2l-capture-central-live-event-form-settings-container">
+				<div>
 					<label
-						for="availability-select"
+						for="streaming-status-select"
 						class="d2l-input-label">
-						${this.localize('availability')}
+						${this.localize('streamingStatus')}
 					</label>
 					<select
-						id="availability-select"
-						class="d2l-input-select d2l-capture-central-live-event-form-availability-select">
-						<option value="${availability.current}">${this.localize('current')}</option>
-						<option value="${availability.upcoming}">${this.localize('upcoming')}</option>
-					</select>` : ''}
-			</d2l-labs-accordion-collapse>
+						id="streaming-status-select"
+						class="d2l-input-select d2l-capture-central-live-event-form-streaming-status-select">
+						<option value="${streamingStatus.current}">${this.localize('current')}</option>
+						<option value="${streamingStatus.upcoming}">${this.localize('upcoming')}</option>
+					</select>
+				</div>
+					<label
+						for="presentation-layout-radio-input"
+						class="d2l-input-label">
+						${this.localize('presentationLayout')}
+					</label>
+					<div id="presentation-layout-radio-input">
+						<label class="d2l-input-radio-label">
+							<input
+								type="radio"
+								name="presentationLayout"
+								id="presentation-layout-camera-and-screen">
+							${this.localize('cameraAndScreen')}
+						</label>
+						<label class="d2l-input-radio-label">
+							<input type="radio" name="presentationLayout" id="presentation-layout-camera">
+							${this.localize('camera')}
+						</label>
+						<label class="d2l-input-radio-label">
+							<input type="radio" name="presentationLayout" id="presentation-layout-screen">
+							${this.localize('screen')}
+						</label>
+					</div>
+				</div>
+				<div class="d2l-capture-central-live-event-form-enable-chat-container">
+					<d2l-input-checkbox
+						id="enable-chat-checkbox">
+						${this.localize('enableChat')}
+					</d2l-input-checkbox>
+				</div>
+			</div>
 		`;
 	}
 
@@ -452,12 +404,6 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 				</d2l-breadcrumbs>
 				<div class="d2l-heading-2">${this.getCurrentPageLabel()}</div>
 				<div>
-					<d2l-alert
-						id="live-event-form-success-alert"
-						class="d2l-capture-central-live-event-form-success-alert"
-						type="success">
-						${this._alertMessage}
-					</d2l-alert>
 					<d2l-alert
 						id="live-event-form-critical-alert"
 						class="d2l-capture-central-live-event-form-critical-alert"
@@ -496,8 +442,7 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 							required
 						></d2l-input-date-time-range>
 					</div>
-					${this._renderLayoutSettings()}
-					${this._renderAccessControl()}
+					${this._renderSettings()}
 					${this._renderSubmitButton()}
 				</div>
 			</div>

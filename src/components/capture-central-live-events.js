@@ -12,6 +12,7 @@ import 'd2l-table/d2l-table-wrapper.js';
 
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { observe, toJS } from 'mobx';
+import { pageNames, sortNames } from '../util/constants.js';
 import { sharedManageStyles, sharedTableStyles } from '../components/shared-styles.js';
 import { d2lTableStyles } from '../components/d2l-table-styles.js';
 import { DependencyRequester } from '../mixins/dependency-requester-mixin.js';
@@ -20,7 +21,6 @@ import { heading2Styles } from '@brightspace-ui/core/components/typography/style
 import { InternalLocalizeMixin } from '../mixins/internal-localize-mixin.js';
 import { MobxReactionUpdate } from '@adobe/lit-mobx';
 import { NavigationMixin } from '../mixins/navigation-mixin.js';
-import { pageNames } from '../util/constants.js';
 import { rootStore } from '../state/root-store.js';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin.js';
 
@@ -33,7 +33,9 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 			_isErrorState: { type: Boolean, attribute: false },
 			_alertMessage: { type: String, attribute: false },
 			_canManage: { type: Boolean, attribute: false },
-			_canView: { type: Boolean, attribute: false }
+			_canView: { type: Boolean, attribute: false },
+			_currentSort: { type: String, attribute: false },
+			_sortIsDesc: { type: Boolean, attribute: false }
 		};
 	}
 
@@ -74,6 +76,8 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 		this._isErrorState = false;
 		this._canManage = false;
 		this._canView = false;
+		this._currentSort = sortNames.default;
+		this._sortIsDesc = false;
 	}
 
 	async connectedCallback() {
@@ -108,6 +112,8 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 		this._permissions = [];
 		this.hideAlerts();
 		this._isErrorState = false;
+		this._currentSort = sortNames.default;
+		this._sortIsDesc = false;
 
 		try {
 			this._permissions = await this.userBrightspaceClient.getPermissions();
@@ -126,6 +132,7 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 			const events = await this.captureApiClient.listEvents({ title: searchQuery });
 			this._liveEvents = events.items;
 			this._liveEvents.forEach(event => event.delete = () => this._deleteEvent({ id: event.id }));
+			this._sortLiveEvents(this._currentSort);
 		} catch (error) {
 			this._alertMessage = this.localize('getLiveEventsError');
 			this._isErrorState = true;
@@ -206,7 +213,64 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 		} else {
 			this._navigate('/');
 		}
+	}
 
+	_sortLiveEvents(sortName = sortNames.default) {
+		let compareFunction = null;
+		if (sortName === sortNames.name) {
+			compareFunction = (a, b) => {
+				const titleA = a.title.toLowerCase();
+				const titleB = b.title.toLowerCase();
+				if (titleA > titleB) {
+					return this._sortIsDesc ? -1 : 1;
+				} else if (titleA < titleB) {
+					return this._sortIsDesc ? 1 : -1;
+				} else {
+					return 0;
+				}
+			};
+		} else if (sortName === sortNames.startTime) {
+			compareFunction = (a, b) => {
+				const dateA = new Date(a.startTime);
+				const dateB = new Date(b.startTime);
+				if (dateA > dateB) {
+					return this._sortIsDesc ? -1 : 1;
+				} else if (dateA < dateB) {
+					return this._sortIsDesc ? 1 : -1;
+				} else {
+					return 0;
+				}
+			};
+		} else if (sortName === sortNames.status) {
+			compareFunction = (a, b) => {
+				if (a.status > b.status) {
+					return this._sortIsDesc ? -1 : 1;
+				} else if (a.status < b.status) {
+					return this._sortIsDesc ? 1 : -1;
+				} else {
+					return 0;
+				}
+			};
+		}
+
+		if (compareFunction) {
+			this._liveEvents.sort(compareFunction);
+		}
+	}
+
+	_handleSort(e = {}) {
+		const sortHeaderElement = e.target;
+		const sortName = sortHeaderElement.getAttribute('value');
+		const isDesc = sortHeaderElement.hasAttribute('desc');
+
+		if (this._currentSort !== sortName) {
+			this._sortIsDesc = false;
+		} else {
+			this._sortIsDesc = !isDesc;
+		}
+
+		this._currentSort = sortName;
+		this._sortLiveEvents(this._currentSort);
 	}
 
 	_renderLiveEvents() {
@@ -221,7 +285,7 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 							?checked=${row.state ? row.state.selected : false}
 						></d2l-input-checkbox>
 					</td>` : ''}
-				<td><d2l-link>${row.title}</d2l-link></td>
+				<td><d2l-link @click=${this._goTo('/view-live-event', { id: row.id })}>${row.title}</d2l-link></td>
 				<td>${row.startTime ? formatDateTime(new Date(row.startTime)) : ''}</td>
 				<td>${this.localize(row.status)}</td>
 				${this._canManage ? html`
@@ -270,15 +334,36 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 										@change=${this._addAllToSelection}>
 									</d2l-input-checkbox>
 								</th>` : ''}
-							<th><div class="d2l-capture-central-th-container">
-								${this.localize('name')}
-							</div></th>
-							<th><div class="d2l-capture-central-th-container">
-								${this.localize('startTime')}
-							</div></th>
-							<th><div class="d2l-capture-central-th-container">
-								${this.localize('status')}
-							</div></th>
+							<th>
+								<d2l-table-col-sort-button
+									id="table-header-sort-by-name"
+									@click=${this._handleSort}
+									?nosort=${this._currentSort !== sortNames.name}
+									?desc=${this._sortIsDesc}
+									value="name">
+									${this.localize('name')}
+								</d2l-table-col-sort-button>
+							</th>
+							<th>
+								<d2l-table-col-sort-button
+									id="table-header-sort-by-start-time"
+									@click=${this._handleSort}
+									?nosort=${this._currentSort !== sortNames.startTime}
+									?desc=${this._sortIsDesc}
+									value="startTime">
+									${this.localize('startTime')}
+								</d2l-table-col-sort-button>
+							</th>
+							<th>
+								<d2l-table-col-sort-button
+									id="table-header-sort-by-status"
+									@click=${this._handleSort}
+									?nosort=${this._currentSort !== sortNames.status}
+									?desc=${this._sortIsDesc}
+									value="status">
+									${this.localize('status')}
+								</d2l-table-col-sort-button>
+							</th>
 							${this._canManage ? html`
 								<th class="d2l-capture-central-th-more-options-container"></th>` : ''}
 						</tr>

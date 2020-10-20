@@ -10,6 +10,7 @@ export const pageNames = {
 	manageLiveEvents: 'manage-live-events',
 	manageLiveEventsCreate: 'create',
 	manageLiveEventsEdit: 'edit',
+	viewLiveEvent: 'view-live-event',
 	page404: '404',
 	presentations: 'presentations',
 	settings: 'settings',
@@ -18,7 +19,7 @@ export const pageNames = {
 	visits: 'visits'
 };
 
-export const availability = {
+export const streamingStatus = {
 	current: 'current',
 	upcoming: 'upcoming',
 	default: 'upcoming'
@@ -29,4 +30,11 @@ export const layoutNames = {
 	screen: 'screen',
 	cameraAndScreen: 'camera-and-screen',
 	default: 'camera-and-screen'
+};
+
+export const sortNames = {
+	name: 'name',
+	startTime: 'startTime',
+	status: 'status',
+	default: 'startTime'
 };
