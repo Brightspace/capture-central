@@ -95,7 +95,10 @@ class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 			editLiveEventForm.setLiveEvent(this._liveEvent);
 			editLiveEventForm.setFocus();
 		} catch (error) {
-			editLiveEventForm.renderFailureAlert({ message: this.localize('getLiveEventError'), hideInputs: true });
+			editLiveEventForm.renderFailureAlert({
+				message: this.localize('getLiveEventError', { numEvents: 1}),
+				hideInputs: true
+			});
 		}
 
 		this._loading = false;

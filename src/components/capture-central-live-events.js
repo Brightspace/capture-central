@@ -128,7 +128,7 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 			this._liveEvents.forEach(event => event.delete = () => this._deleteEvent({ id: event.id }));
 			this._sortLiveEvents(this._currentSort);
 		} catch (error) {
-			this._alertMessage = this.localize('getLiveEventsError');
+			this._alertMessage = this.localize('getLiveEventError', { numEvents: 2});
 			this._isErrorState = true;
 		}
 
