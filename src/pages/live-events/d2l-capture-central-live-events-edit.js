@@ -85,26 +85,19 @@ class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 		}
 
 		const editLiveEventForm = this.shadowRoot.querySelector('#edit-live-event-form');
-		const loadSpinner = this.shadowRoot.querySelector('#loading-spinner');
-
 		this._loading = true;
-		loadSpinner.className = 'visible';
-		editLiveEventForm.className = 'hidden';
-
 		let liveEventResponse;
 		try {
 			liveEventResponse = await this.captureApiClient.getEvent({
 				id: rootStore.routingStore.getQueryParams().id
 			});
 			this._liveEvent = liveEventResponse.item;
-			editLiveEventForm.updateFields(this._liveEvent);
+			editLiveEventForm.setLiveEvent(this._liveEvent);
 			editLiveEventForm.setFocus();
 		} catch (error) {
 			editLiveEventForm.renderFailureAlert({ message: this.localize('getLiveEventError'), hideInputs: true });
 		}
 
-		loadSpinner.className = 'hidden';
-		editLiveEventForm.className = 'visible';
 		this._loading = false;
 	}
 
@@ -152,11 +145,14 @@ class D2LCaptureLiveEventsEdit extends DependencyRequester(PageViewElement) {
 		}
 
 		return html`
-			<d2l-loading-spinner id="loading-spinner" class="hidden" size=150></d2l-loading-spinner>
+			<d2l-loading-spinner
+				id="loading-spinner"
+				class="${this._loading ? 'visible' : 'hidden'}"
+				size=150>
+			</d2l-loading-spinner>
 			<live-event-form
-				class="hidden"
 				id="edit-live-event-form"
-				live-event="${JSON.stringify(this._liveEvent)}"
+				class="${this._loading ? 'hidden' : 'visible'}"
 				is-edit>
 			</live-event-form>
 		`;

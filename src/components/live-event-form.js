@@ -21,14 +21,13 @@ import { NavigationMixin } from '../mixins/navigation-mixin.js';
 import { radioStyles } from '@brightspace-ui/core/components/inputs/input-radio-styles.js';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin.js';
 import { selectStyles } from '@brightspace-ui/core/components/inputs/input-select-styles.js';
-import { sharedEditStyles } from '../components/shared-styles.js';
+import { sharedEditStyles } from './shared-styles.js';
 
 class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(InternalLocalizeMixin(LitElement)))) {
 
 	static get properties() {
 		return {
 			isEdit: { type: Boolean, attribute: 'is-edit' },
-			liveEvent: { type: Object, attribute: 'live-event'},
 			_alertMessage: { type: String, attribute: false }
 		};
 	}
@@ -75,6 +74,7 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 		this._descriptionTextAreaRows = 5;
 		this._descriptionMaxCharacters = 500;
 		this._alertMessage = '';
+		this._liveEvent = {};
 	}
 
 	firstUpdated() {
@@ -126,7 +126,9 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 		this.hideFailureAlert();
 	}
 
-	updateFields(liveEvent) {
+	setLiveEvent(liveEvent) {
+		this._liveEvent = liveEvent;
+
 		const titleInputElement = this.shadowRoot.querySelector('#title-input');
 		if (titleInputElement) {
 			titleInputElement.value = (liveEvent && liveEvent.title) || '';
@@ -236,7 +238,7 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 
 		const event = new CustomEvent('edit-live-event', {
 			detail: {
-				id: this.liveEvent.id,
+				id: this._liveEvent.id,
 				...inputs
 			},
 			bubbles: true,
@@ -416,14 +418,12 @@ class LiveEventForm extends MobxReactionUpdate(NavigationMixin(RtlMixin(Internal
 						id="title-input"
 						label="${this.localize('title')}"
 						placeholder="${this.localize('title')}"
-						value=""
 						required
 					></d2l-input-text>
 					<d2l-input-text
 						id="presenter-input"
 						label="${this.localize('presenter')}"
 						placeholder="${this.localize('presenter')}"
-						value=""
 					></d2l-input-text>
 					<div class="d2l-capture-central-edit-textarea-container">
 						<div class="d2l-label-text">${this.localize('description')}</div>

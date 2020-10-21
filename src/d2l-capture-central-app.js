@@ -47,8 +47,8 @@ class D2lCaptureCentralApp extends DependencyRequester(NavigationMixin(InternalL
 		this._permissionError = false;
 	}
 
-	async firstUpdated() {
-		await super.firstUpdated();
+	async connectedCallback() {
+		await super.connectedCallback();
 		this.userBrightspaceClient = this.requestDependency('user-brightspace-client');
 
 		try {
@@ -58,6 +58,7 @@ class D2lCaptureCentralApp extends DependencyRequester(NavigationMixin(InternalL
 			this._permissionError = true;
 		}
 	}
+
 	_resized() {
 		rootStore.appTop = this.offsetTop;
 	}
