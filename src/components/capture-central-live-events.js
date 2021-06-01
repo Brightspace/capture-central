@@ -8,13 +8,12 @@ import '@brightspace-ui/core/components/inputs/input-checkbox.js';
 import '@brightspace-ui/core/components/inputs/input-search.js';
 import '@brightspace-ui/core/components/link/link.js';
 import '@brightspace-ui/core/components/loading-spinner/loading-spinner.js';
-import 'd2l-table/d2l-table-wrapper.js';
+import '@brightspace-ui/core/components/table/table-col-sort-button.js';
 
 import { css, html, LitElement } from 'lit-element/lit-element.js';
 import { observe, toJS } from 'mobx';
 import { pageNames, sortNames } from '../util/constants.js';
 import { sharedManageStyles, sharedTableStyles } from '../style/shared-styles.js';
-import { d2lTableStyles } from '../style/d2l-table-styles.js';
 import { DependencyRequester } from '../mixins/dependency-requester-mixin.js';
 import { formatDateTime } from '@brightspace-ui/intl/lib/dateTime.js';
 import { heading2Styles } from '@brightspace-ui/core/components/typography/styles.js';
@@ -23,6 +22,7 @@ import { MobxReactionUpdate } from '@adobe/lit-mobx';
 import { NavigationMixin } from '../mixins/navigation-mixin.js';
 import { rootStore } from '../state/root-store.js';
 import { RtlMixin } from '@brightspace-ui/core/mixins/rtl-mixin.js';
+import { tableStyles } from '@brightspace-ui/core/components/table/table-wrapper.js';
 
 class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin(NavigationMixin(RtlMixin(MobxReactionUpdate(LitElement))))) {
 
@@ -40,7 +40,7 @@ class CaptureCentralLiveEvents extends DependencyRequester(InternalLocalizeMixin
 	}
 
 	static get styles() {
-		return [ d2lTableStyles, sharedManageStyles, sharedTableStyles, heading2Styles, css`
+		return [ tableStyles, sharedManageStyles, sharedTableStyles, heading2Styles, css`
 			d2l-loading-spinner {
 				display: flex;
 				margin-top: 10%;

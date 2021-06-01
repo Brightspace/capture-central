@@ -45,7 +45,6 @@
     "d2l-fetch": "github:Brightspace/d2l-fetch#semver:^2",
     "d2l-fetch-auth": "^1.5.2",
     "d2l-resize-aware": "github:BrightspaceUI/resize-aware#semver:^1",
-    "d2l-table": "github:BrightspaceUI/table#semver:^2",
     "file-drop-element": "^1.0.1",
     "lit-element": "^2",
     "mobx": "^5.15.6",

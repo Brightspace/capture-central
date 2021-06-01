@@ -1,14 +1,13 @@
 import '@brightspace-ui/core/components/colors/colors.js';
 import '@brightspace-ui-labs/pagination/pagination.js';
-import 'd2l-table/d2l-table-wrapper.js';
 
 import { css, html } from 'lit-element/lit-element.js';
 import { heading2Styles, labelStyles } from '@brightspace-ui/core/components/typography/styles.js';
 import { sharedManageStyles, sharedTableStyles } from '../../style/shared-styles.js';
-import { d2lTableStyles } from '../../style/d2l-table-styles.js';
 import { DependencyRequester } from '../../mixins/dependency-requester-mixin.js';
 import { inputStyles } from '@brightspace-ui/core/components/inputs/input-styles.js';
 import { PageViewElement } from '../../components/page-view-element.js';
+import { tableStyles } from '@brightspace-ui/core/components/table/table-wrapper.js';
 
 class D2LCaptureVisits extends DependencyRequester(PageViewElement) {
 
@@ -18,7 +17,7 @@ class D2LCaptureVisits extends DependencyRequester(PageViewElement) {
 		};
 	}
 	static get styles() {
-		return [inputStyles, heading2Styles, labelStyles, sharedManageStyles, sharedTableStyles, d2lTableStyles, css`
+		return [inputStyles, heading2Styles, labelStyles, sharedManageStyles, sharedTableStyles, tableStyles, css`
 			.d2l-capture-central-manage-header {
 				border-bottom: none;
 			}

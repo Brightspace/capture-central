@@ -8,14 +8,13 @@ import '@brightspace-ui/core/components/dropdown/dropdown-menu.js';
 import '@brightspace-ui/core/components/inputs/input-checkbox.js';
 import '@brightspace-ui/core/components/inputs/input-search.js';
 import '@brightspace-ui-labs/pagination/pagination.js';
-import 'd2l-table/d2l-table-wrapper.js';
 
 import { css, html } from 'lit-element/lit-element.js';
 import { sharedManageStyles, sharedTableStyles } from '../../style/shared-styles.js';
-import { d2lTableStyles } from '../../style/d2l-table-styles.js';
 import { DependencyRequester } from '../../mixins/dependency-requester-mixin.js';
 import { heading2Styles } from '@brightspace-ui/core/components/typography/styles.js';
 import { PageViewElement } from '../../components/page-view-element.js';
+import { tableStyles } from '@brightspace-ui/core/components/table/table-wrapper.js';
 
 class D2lCaptureClips extends DependencyRequester(PageViewElement) {
 
@@ -27,7 +26,7 @@ class D2lCaptureClips extends DependencyRequester(PageViewElement) {
 	}
 
 	static get styles() {
-		return [ d2lTableStyles, sharedTableStyles, sharedManageStyles, heading2Styles, css`
+		return [ tableStyles, sharedTableStyles, sharedManageStyles, heading2Styles, css`
 		`];
 	}
 
