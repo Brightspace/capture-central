@@ -70,6 +70,7 @@ class ContentListItem extends DependencyRequester(navigationMixin(InternalLocali
 		return html`
 			<d2l-list-item class="d2l-body-compact"
 				?disabled=${this.disabled}
+				label="${this.title}"
 				?selectable=${this.selectable}
 				key=${this.id}
 			>

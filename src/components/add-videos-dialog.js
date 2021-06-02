@@ -124,7 +124,7 @@ class D2lCaptureAddVideosDialog extends contentSearchMixin(DependencyRequester(I
 		}
 		const videos = this._videos.map(({ thumbnail, title, uploadDate, duration, views }) => {
 			return html`
-				<d2l-list-item class="d2l-capture-central-video-list-item" selectable key="${views}">
+				<d2l-list-item class="d2l-capture-central-video-list-item" selectable label="${title}" key="${views}">
 					<div slot="illustration">
 						<img alt="" class="d2l-capture-central-video-thumbnail" src="${thumbnail}" slot="illustration"></img>
 						<div class="d2l-capture-central-video-thumbnail-duration-overlay">
